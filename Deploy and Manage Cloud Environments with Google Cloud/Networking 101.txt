@@ -1,0 +1,93 @@
+gcloud auth list
+
+TASK 4
+
+gcloud compute networks create taw-custom-network --subnet-mode custom
+
+gcloud compute networks subnets create subnet-us-central \
+   --network taw-custom-network \
+   --region us-central1 \
+   --range 10.0.0.0/16
+   
+gcloud compute networks subnets create subnet-europe-west \
+   --network taw-custom-network \
+   --region europe-west1 \
+   --range 10.1.0.0/16
+   
+gcloud compute networks subnets create subnet-asia-east \
+   --network taw-custom-network \
+   --region asia-east1 \
+   --range 10.2.0.0/16
+   
+gcloud compute networks subnets list \
+   --network taw-custom-network
+   
+TASK 5
+   
+gcloud compute firewall-rules create nw101-allow-http \
+--allow tcp:80 --network taw-custom-network --source-ranges 0.0.0.0/0 \
+--target-tags http
+
+gcloud compute firewall-rules create "nw101-allow-icmp" --allow icmp --network "taw-custom-network" --target-tags rules
+
+gcloud compute firewall-rules create "nw101-allow-internal" --allow tcp:0-65535,udp:0-65535,icmp --network "taw-custom-network" --source-ranges "10.0.0.0/16","10.2.0.0/16","10.1.0.0/16"
+
+gcloud compute firewall-rules create "nw101-allow-ssh" --allow tcp:22 --network "taw-custom-network" --target-tags "ssh"
+
+gcloud compute firewall-rules create "nw101-allow-rdp" --allow tcp:3389 --network "taw-custom-network"
+
+TASK 6
+
+gcloud compute instances create us-test-01 \
+--subnet subnet-us-central \
+--zone us-central1-a \
+--tags ssh,http,rules
+
+gcloud compute instances create europe-test-01 \
+--subnet subnet-europe-west \
+--zone europe-west1-b \
+--tags ssh,http,rules
+
+gcloud compute instances create asia-test-01 \
+--subnet subnet-asia-east \
+--zone asia-east1-a \
+--tags ssh,http,rules
+
+ping -c 3 <europe-test-01-external-ip-address>
+
+ping -c 3 <asia-test-01-external-ip-address>
+
+ping -c 3 europe-test-01.europe-west1-b
+
+TASK 7
+
+sudo apt-get update
+sudo apt-get -y install traceroute mtr tcpdump iperf whois host dnsutils siege
+
+traceroute www.icann.org
+
+TASK 8
+
+sudo apt-get update
+sudo apt-get -y install traceroute mtr tcpdump iperf whois host dnsutils siege
+
+iperf -s #run in server mode
+
+iperf -c us-test-01.us-central1-a #run in client mode, connection to eu1-vm
+
+gcloud compute instances create us-test-02 \
+--subnet subnet-us-central \
+--zone us-central1-b \
+--tags ssh,http
+
+sudo apt-get update
+sudo apt-get -y install traceroute mtr tcpdump iperf whois host dnsutils siege
+
+iperf -s -u #iperf server side
+
+iperf -c europe-test-01.europe-west1-b -u -b 2G #iperf client side - send 2 Gbits/s
+
+iperf -s
+
+iperf -c us-test-01.us-central1-a -P 20
+

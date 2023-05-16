@@ -1,0 +1,93 @@
+gcloud auth list
+
+sudo apt install postgresql-13-pglogical
+
+cd ..
+
+cd ..
+
+cd /etc/postgresql/13/main
+
+sudo vi postgresql.conf
+
+wal_level = logical
+max_worker_processes = 10
+max_replication_slots = 10
+max_wal_senders = 10
+shared_preload_libraries = 'pglogical'
+max_wal_size = 1GB
+min_wal_size = 80MB
+listen_addresses = '*'
+
+sudo nano pg_hba.conf
+
+host    all             all             0.0.0.0/0               md5
+
+sudo systemctl restart postgresql@13-main
+
+\l
+
+\c postgres;
+
+CREATE EXTENSION pglogical;
+
+\c orders;
+
+CREATE EXTENSION pglogical;
+
+\l
+
+CREATE USER replication_admin PASSWORD 'DMS_1s_cool!'
+
+;
+
+ALTER DATABASE orders OWNER TO replication_admin;
+
+ALTER ROLE replication_admin WITH REPLICATION;
+
+\c orders;
+
+GRANT USAGE ON SCHEMA pglogical to replication_admin;
+
+GRANT ALL ON SCHEMA pglogical TO replication_admin;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA "pglogical" TO replication_admin;
+
+\c postgres
+
+\dt
+
+GRANT USAGE ON SCHEMA pglogical to replication_admin;
+
+GRANT ALL ON SCHEMA pglogical TO replication_admin;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA "pglogical" TO replication_admin;
+
+GRANT USAGE ON SCHEMA public to replication_admin;
+
+GRANT ALL ON SCHEMA public TO replication_admin;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA "public" TO replication_admin;
+
+\c orders;
+
+ALTER TABLE public.distribution_centers OWNER TO replication_admin;
+
+ALTER TABLE public.inventory_items OWNER TO replication_admin;
+
+ALTER TABLE public.order_items OWNER TO replication_admin;
+
+ALTER TABLE public.products OWNER TO replication_admin;
+
+ALTER TABLE public.users OWNER TO replication_admin;
+
+\dt
+
+ALTER TABLE public.inventory_items ADD PRIMARY KEY(id);
+\q 
+exit
+
+git clone --depth 1 --branch csb_1220 https://github.com/GoogleCloudPlatform/cloud-ops-sandbox.git
+cd cloud-ops-sandbox/sre-recipes
+./sandboxctl sre-recipes restore recipe0
+./sandboxctl sre-recipes verify recipe0
