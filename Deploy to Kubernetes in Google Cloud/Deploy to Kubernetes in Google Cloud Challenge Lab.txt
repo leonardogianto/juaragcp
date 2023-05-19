@@ -1,0 +1,61 @@
+gcloud auth list
+
+source <(gsutil cat gs://cloud-training/gsp318/marking/setup_marking_v2.sh)
+
+gcloud source repos clone valkyrie-app --project=qwiklabs-gcp-00-3ba22632b145
+
+cd valkyrie-app/
+
+cat > Dockerfile <<EOF
+
+FROM golang:1.10
+WORKDIR /go/src/app
+COPY source .
+RUN go install -v
+ENTRYPOINT ["app","-single=true","-port=8080"]
+
+docker build -t valkyrie-dev:v0.0.3 .
+
+cd . .
+
+ls
+
+./marking/step1_v2.sh
+
+=======TASK 2
+
+docker run -p 8080:8080 --name valkyrie-dev valkyrie-dev:v0.0.3 &
+
+bash ~/marking/step2_v2.sh
+
+=======TASK 3
+
+docker tag valkyrie-dev:v0.0.3 gcr.io/qwiklabs-gcp-00-3ba22632b145/valkyrie-dev:v0.0.3
+
+docker images
+
+docker push gcr.io/qwiklabs-gcp-00-3ba22632b145/valkyrie-dev:v0.0.3
+
+docker push us-central1-docker.pkg.dev/qwiklabs-gcp-00-3ba22632b145/valkyrie-docker/valkyrie-app:v0.0.3
+
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+docker tag valkyrie-app:v0.0.3 us-central1-docker.pkg.dev/qwiklabs-gcp-00-3ba22632b145/valkyrie-docker/valkyrie-app:v0.0.3
+
+docker push us-central1-docker.pkg.dev/qwiklabs-gcp-00-3ba22632b145/valkyrie-docker/valkyrie-app:v0.0.3
+
+-*-*-*-*TASK 5
+
+gcloud container clusters get-credentials valkyrie-dev
+
+cd valkyrie-app/
+
+ls
+
+cat k8s/deployment.yaml
+
+sed -i s#IMAGE_HERE#us-central1-docker.pkg.dev/qwiklabs-gcp-00-3ba22632b145/valkyrie-docker/valkyrie-app:v0.0.3#g k8s/deployment.yaml
+
+kubectl create -f k8s/deployment.yaml
+
+kubectl create -f k8s/service.yaml
