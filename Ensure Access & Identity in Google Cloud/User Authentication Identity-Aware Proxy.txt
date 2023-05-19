@@ -1,0 +1,42 @@
+gsutil cp gs://spls/gsp499/user-authentication-with-iap.zip .
+unzip user-authentication-with-iap.zip
+cd user-authentication-with-iap
+
+TASK 1 DEPLOY THE APPLICATION AND PROTECT IT WITH IAP
+
+cd 1-HelloWorld
+cat main.py
+
+gcloud app deploy
+
+gcloud app browse
+
+gcloud services disable appengineflex.googleapis.com
+
+TASK 2 ACCESS USER IDENTITY INFORMATION
+
+cd ~/user-authentication-with-iap/2-HelloUser
+gcloud app deploy
+
+gcloud app browse
+
+curl -X GET https://qwiklabs-gcp-01-6c8d4022ff43.as.r.appspot.com/ -H "X-Goog-Authenticated-User-Email: totally fake email"
+
+TASK 2 USE CRYPTOGRAPHIC VERIFICATION
+
+cd ~/user-authentication-with-iap/3-HelloVerifiedUser
+gcloud app deploy
+
+def user():
+    assertion = request.headers.get('X-Goog-IAP-JWT-Assertion')
+    if assertion is None:
+        return None, None
+    info = jwt.decode(
+        assertion,
+        keys(),
+        algorithms=['ES256'],
+        audience=audience()
+    )
+    return info['email'], info['sub']
+	
+gcloud app browse
