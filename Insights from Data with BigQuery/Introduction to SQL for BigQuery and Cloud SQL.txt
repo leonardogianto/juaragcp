@@ -1,0 +1,25 @@
+SELECT start_station_name, COUNT(*) AS num FROM `bigquery-public-data.london_bicycles.cycle_hire` GROUP BY start_station_name ORDER BY num DESC;
+
+E:\Documents\Leo\Bangkit\juaragcp\Insights from Data with BigQuery\station_num.csv
+
+SELECT end_station_name, COUNT(*) AS num FROM `bigquery-public-data.london_bicycles.cycle_hire` GROUP BY end_station_name ORDER BY num DESC;
+
+E:\Documents\Leo\Bangkit\juaragcp\Insights from Data with BigQuery\end_station_num.csv
+
+dogi_bucket_001
+
+password
+
+TASK 6 New Queries in Cloud SQL
+
+https://shell.cloud.google.com/?show=terminal
+
+gcloud config set project qwiklabs-gcp-02-fadf66cb9394
+
+gcloud auth login --no-launch-browser
+
+gcloud config set project qwiklabs-gcp-02-fadf66cb9394
+
+gcloud sql connect my-demo --user=root --quiet
+
+CREATE DATABASE bike;
