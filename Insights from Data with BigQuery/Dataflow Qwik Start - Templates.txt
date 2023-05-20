@@ -1,0 +1,12 @@
+bq mk taxirides
+bq mk \
+--time_partitioning_field timestamp \
+--schema ride_id:string,point_idx:integer,latitude:float,longitude:float,\
+timestamp:timestamp,meter_reading:float,meter_increment:float,ride_status:string,\
+passenger_count:integer -t taxirides.realtime
+
+export BUCKET_NAME=qwiklabs-gcp-00-18e349e741d3
+gsutil mb gs://$BUCKET_NAME/
+
+ride_id:string,point_idx:integer,latitude:float,longitude:float,timestamp:timestamp,
+meter_reading:float,meter_increment:float,ride_status:string,passenger_count:integer

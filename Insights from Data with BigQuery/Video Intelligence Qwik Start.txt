@@ -1,0 +1,25 @@
+gcloud iam service-accounts create quickstart
+gcloud iam service-accounts keys create key.json --iam-account quickstart@qwiklabs-gcp-00-68724b0ded3e.iam.gserviceaccount.com
+gcloud auth activate-service-account --key-file key.json
+gcloud auth print-access-token
+
+ya29.c.b0Aaekm1LHu-t_D_PZMWIXsOpmsB_C9Ztdxri4xrweEQtrpIQ_LHc6ayjl6k3I1XJSfKMqvwgvsnp-7ivcgFFrwkoyvuIf9i9oUAPn70rCuxNfYVXU2a6uGeSluV4DMcDIs7YtuIKODNxA9rL0ZyBzl5tgDNNCEnGh08sXR3EvwR3OuAfltQ_tXaLVdaUj0mzV3ZC_0_qWAC943chvM8dLlbXcVfuISgr7tJdOyLhvg6ZF_7y0Ls2y1dJlr0b0FUaTjW384vYTMDl8fkkNxRbDd3AEDW-VcwYWQ3prfrOQlDKwyxV4zJ4PgdD7Kt7TrEW-2HcZdjOLHue-Ev6oJ3riE349D5ouVfBWuxf0o-3Uy13unbeq3YR60Y0aOp8hp0kjg8n0dOMiiY2hdoiwqiR_ttBI1Y1qnsRnzZxQr23cFtXYRkwIaviybgYuWFMo_-wFQey3r5Oc80FwmIvz-_S1MpVZ0s4adiu5IMxYxhXFgmm5VWjw4XYzuR_zRn56pSkxj_wc2d2aj4BQrSO4hlt686coV2jQWblolcXJbmOmWZs9hytSd2YVq5vu9F0dfuRy0dWJojvkoRSXiU4S-7m8Vj-iB5ZFfy0bzwhyOZVp_0r9ZxrnoI27bfkxeqUSR9V782Z3pvdj78sQ6uFix2rmsgMUy8Wr8yby47rjBOFlyeap6OkdXWrV0qaRORrvmWMMu_y8lXXy8tJWapSbwIjQ-2--jlZx5twzurWWkgBYdV1QstRsS3nej3261y9QRmZaggkbQYRYdM1-3177x2f5YX2zt9wYJqbsIo_aI8aoxe29sjy68e1ykbm4QX7xUY037f9q7zJm80F1tdJmkfw333rOcfv4UOfiXkne9YtgZ21nXhzgaIy_wJVe_raYWobMo8jyuv7iFfJlReRu98j4mUpgn6g0zVv0FVvin8d1Fea1JSn8YuOpMUU86o5i66r6zogl1cywbx6Yjzc4XnMUZyxJz1jBeZu1OM_1Sf0eraOmppb6Fw1ihd1
+
+cat > request.json <<EOF
+{
+   "inputUri":"gs://spls/gsp154/video/train.mp4",
+   "features": [
+       "LABEL_DETECTION"
+   ]
+}
+EOF
+
+curl -s -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer '$(gcloud auth print-access-token)'' \
+    'https://videointelligence.googleapis.com/v1/videos:annotate' \
+    -d @request.json
+	
+curl -s -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer '$(gcloud auth print-access-token)'' \
+    'https://videointelligence.googleapis.com/v1/projects/PROJECTS/locations/LOCATIONS/operations/OPERATION_NAME'
+	
