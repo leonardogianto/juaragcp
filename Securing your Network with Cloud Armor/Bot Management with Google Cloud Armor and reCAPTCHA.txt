@@ -1,0 +1,78 @@
+export PROJECT_ID=$(gcloud config get-value project)
+echo $PROJECT_ID
+gcloud config set project $PROJECT_ID
+gcloud services enable compute.googleapis.com
+gcloud services enable logging.googleapis.com
+gcloud services enable monitoring.googleapis.com
+gcloud services enable recaptchaenterprise.googleapis.com
+
+TASK 1
+
+gcloud compute firewall-rules create default-allow-health-check --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:80 --source-ranges=130.211.0.0/22,35.191.0.0/16 --target-tags=allow-health-check
+gcloud compute firewall-rules create allow-ssh --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:22 --source-ranges=0.0.0.0/0 --target-tags=allow-health-check
+
+TASK 2
+
+#! /bin/bash
+sudo apt-get update
+sudo apt-get install apache2 -y
+sudo a2ensite default-ssl
+sudo a2enmod ssl
+sudo su
+vm_hostname="$(curl -H "Metadata-Flavor:Google" \
+http://metadata.google.internal/computeMetadata/v1/instance/name)"
+echo "Page served from: $vm_hostname" | \
+tee /var/www/html/index.html
+
+gcloud compute instance-groups set-named-ports lb-backend-example \
+--named-ports http:80 \
+--zone us-central1-a
+
+34.117.54.9:80
+
+TASK 5
+
+gcloud recaptcha keys create --display-name=test-key-name \
+  --web --allow-all-domains --integration-type=score --testing-score=0.5 \
+  --waf-feature=session-token --waf-service=ca
+  
+gcloud recaptcha keys create --display-name=challenge-page-key \
+--web --allow-all-domains --integration-type=INVISIBLE \
+--waf-feature=challenge-page --waf-service=ca
+
+cd /var/www/html/
+sudo su
+
+echo '<!doctype html><html><head><title>ReCAPTCHA Session Token</title><script src="https://www.google.com/recaptcha/enterprise.js?render=6LfmdismAAAAAPgt8EY-pK8tm639-LQ3mgA7jctJ&waf=session" async defer></script></head><body><h1>Main Page</h1><p><a href="/good-score.html">Visit allowed link</a></p><p><a href="/bad-score.html">Visit blocked link</a></p><p><a href="/median-score.html">Visit redirect link</a></p></body></html>' > index.html
+
+echo '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head><body><h1>Congrats! You have a good score!!</h1></body></html>' > good-score.html
+
+echo '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head><body><h1>Sorry, You have a bad score!</h1></body></html>' > bad-score.html
+
+echo '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head><body><h1>You have a median score that we need a second verification.</h1></body></html>' > median-score.html
+
+TASK 6
+
+gcloud compute security-policies create recaptcha-policy \
+    --description "policy for bot management"
+	
+gcloud compute security-policies update recaptcha-policy \
+  --recaptcha-redirect-site-key "6Lc_uCsmAAAAAEYbacuPk1Cj6wSMGNA8QwamBKpv"
+  
+gcloud compute security-policies rules create 2000 \
+    --security-policy recaptcha-policy\
+    --expression "request.path.matches('good-score.html') &&    token.recaptcha_session.score > 0.4"\
+    --action allow
+gcloud compute security-policies rules create 3000 \
+    --security-policy recaptcha-policy\
+    --expression "request.path.matches('bad-score.html') && token.recaptcha_session.score < 0.6"\
+    --action "deny-403"
+gcloud compute security-policies rules create 1000 \
+    --security-policy recaptcha-policy\
+    --expression "request.path.matches('median-score.html') && token.recaptcha_session.score == 0.5"\
+    --action redirect \
+    --redirect-type google-recaptcha
+	
+gcloud compute backend-services update http-backend \
+    --security-policy recaptcha-policy --global
+	
