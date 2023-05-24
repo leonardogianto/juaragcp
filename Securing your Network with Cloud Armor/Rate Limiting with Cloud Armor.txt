@@ -1,0 +1,28 @@
+sudo apt-get -y install siege
+
+export LB_IP=107.178.254.120:80
+
+siege -c 250 http://$LB_IP
+
+gcloud compute security-policies create rate-limit-siege \
+    --description "policy for rate limiting"
+	
+gcloud beta compute security-policies rules create 100 \
+    --security-policy=rate-limit-siege     \
+    --expression="true" \
+    --action=rate-based-ban                   \
+    --rate-limit-threshold-count=50           \
+    --rate-limit-threshold-interval-sec=120   \
+    --ban-duration-sec=300           \
+    --conform-action=allow           \
+    --exceed-action=deny-404         \
+    --enforce-on-key=IP
+	
+gcloud compute backend-services update http-backend \
+    --security-policy rate-limit-siege
+	
+TASK 6
+
+curl http://$LB_IP
+
+siege -c 250 http://$LB_IP

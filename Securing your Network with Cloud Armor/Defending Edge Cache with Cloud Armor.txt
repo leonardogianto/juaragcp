@@ -1,0 +1,13 @@
+export PROJECT_ID=$(gcloud config get-value project)
+echo $PROJECT_ID
+gcloud config set project $PROJECT_ID
+
+wget --output-document google.png https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png
+gsutil cp google.png gs://qwiklabs-gcp-01-92c7a38c507e
+rm google.png
+
+34.98.104.63:80
+
+curl -svo /dev/null http://34.98.104.63/google.png
+
+resource.type:(http_load_balancer) AND jsonPayload.enforcedEdgeSecurityPolicy.name:edge-security-policy
