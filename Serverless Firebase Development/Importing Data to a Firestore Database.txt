@@ -1,0 +1,90 @@
+git clone https://github.com/rosera/pet-theory
+
+cd pet-theory/lab01
+
+npm install @google-cloud/firestore
+npm install @google-cloud/logging
+
+nano importDataTest.js
+
+const {Firestore} = require('@google-cloud/firestore');
+
+const db = new Firestore();
+function writeToFirestore(records) {
+  const batchCommits = [];
+  let batch = db.batch();
+  records.forEach((record, i) => {
+    var docRef = db.collection('customers').doc(record.email);
+    batch.set(docRef, record);
+    if ((i + 1) % 500 === 0) {
+      console.log(`Writing record ${i + 1}`);
+      batchCommits.push(batch.commit());
+      batch = db.batch();
+    }
+  });
+  batchCommits.push(batch.commit());
+  return Promise.all(batchCommits);
+}
+
+async function importCsv(csvFileName) {
+  const fileContents = await readFile(csvFileName, 'utf8');
+  const records = await parse(fileContents, { columns: true });
+  try {
+    await writeToFirestore(records);
+    // await writeToDatabase(records);
+  }
+  catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+  console.log(`Wrote ${records.length} records`);
+}
+
+const {Logging} = require('@google-cloud/logging');        //add this
+
+const logName = 'pet-theory-logs-importTestData';
+// Creates a Logging client
+const logging = new Logging();
+const log = logging.log(logName);
+const resource = {
+  type: 'global',
+};
+
+npm install faker@5.5.3
+
+nano createTestData.js
+
+const {Logging} = require('@google-cloud/logging');
+const logName = 'pet-theory-logs-createTestData';
+// Creates a Logging client
+const logging = new Logging();
+const log = logging.log(logName);
+const resource = {
+  // This example targets the "global" resource for simplicity
+  type: 'global',
+};
+
+// A text log entry
+const success_message = `Success: createTestData - Created file ${fileName} containing ${recordCount} records.`
+const entry = log.entry({resource: resource}, {name: `${fileName}`, recordCount: `${recordCount}`, message: `${success_message}`});
+log.write([entry]);
+
+gcloud config set project qwiklabs-gcp-03-a60c9fe30443
+PROJECT_ID=$(gcloud config get-value project)
+
+node createTestData 1000
+
+TASK 4
+
+node importTestData customers_1000.csv
+npm install csv-parse
+node createTestData 20000
+node importTestData customers_20000.csv
+
+TASK 7
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=user:student-04-55416d9e8464@qwiklabs.net --role=roles/logging.viewer
+  
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=user:student-04-55416d9e8464@qwiklabs.net --role roles/source.writer

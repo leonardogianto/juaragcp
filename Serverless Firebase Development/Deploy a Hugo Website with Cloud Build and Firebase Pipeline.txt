@@ -1,0 +1,49 @@
+cd ~
+/tmp/installhugo.sh
+sudo apt-get update
+sudo apt-get install git
+cd ~
+gcloud source repos create my_hugo_site
+gcloud source repos clone my_hugo_site
+cd ~
+/tmp/hugo new site my_hugo_site --force
+cd ~/my_hugo_site
+git clone \
+  https://github.com/budparr/gohugo-theme-ananke.git \
+  themes/ananke
+echo 'theme = "ananke"' >> config.toml
+sudo rm -r themes/ananke/.git
+sudo rm themes/ananke/.gitignore 
+cd ~/my_hugo_site
+/tmp/hugo server -D --bind 0.0.0.0 --port 8080
+
+http://34.173.199.177:8080
+
+curl -sL https://firebase.tools | bash
+cd ~/my_hugo_site
+firebase init
+
+/tmp/hugo && firebase deploy
+
+TASK 2
+
+git config --global user.name "hugo"
+git config --global user.email "hugo@blogger.com"
+cd ~/my_hugo_site
+echo "resources" >> .gitignore
+git add .
+git commit -m "Add app to Cloud Source Repositories"
+git push -u origin master
+cd ~/my_hugo_site
+cp /tmp/cloudbuild.yaml .
+gcloud alpha builds triggers import --source=/tmp/trigger.yaml
+cd ~/my_hugo_site
+
+nano config.toml
+Blogging with Hugo and Cloud Build
+git add .
+git commit -m "I updated the site title"
+git push -u origin master
+
+gcloud builds log $(gcloud builds list --format='value(ID)' --filter=$(git rev-parse HEAD))
+gcloud builds log $(gcloud builds list --format='value(ID)' --filter=$(git rev-parse HEAD)) | grep "Hosting URL"
