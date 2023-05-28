@@ -1,0 +1,15 @@
+sudo apt-get install nginx-light -y
+sudo nano /var/www/html/index.nginx-debian.html
+
+sudo apt-get install nginx-light -y
+sudo nano /var/www/html/index.nginx-debian.html
+
+TASK 2
+
+gcloud compute instances create test-vm --machine-type=f1-micro --subnet=default --zone=us-central1-a
+curl 10.128.0.4
+
+TASK 3
+
+gcloud compute firewall-rules list
+gcloud compute firewall-rules delete allow-http-web-server
